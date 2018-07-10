@@ -18,7 +18,7 @@ void setup()
   delay(1000);
   BT.begin(9600);
   Serial.begin(9600);
-  sensors.begin();
+  //sensors.begin();
 }
  
 void loop()
