@@ -24,7 +24,7 @@
 #include <OneWire.h>                 //Se importan las librerías
 #include <DallasTemperature.h>
  
-#define Pin 7                        //Se declara el pin donde se conectará la DATA
+#define Pin 5                        //Se declara el pin donde se conectará la DATA
  
 OneWire ourWire(Pin);                //Se establece el pin declarado como bus para la comunicación OneWire
  
@@ -41,12 +41,26 @@ int status = WL_IDLE_STATUS;
 
 WiFiServer server(80);
 
+#include <SD.h>
+#include <SPI.h>
+
+const int chipSelect = 4;
+
 void setup() {
   //Initialize serial and wait for port to open:
   Serial.begin(9600);
-  while (!Serial) {
-    ; // wait for serial port to connect. Needed for native USB port only
-  }
+  //while (!Serial) {
+   // ; // wait for serial port to connect. Needed for native USB port only
+  //}
+    Serial.print("Initializing SD card…");
+    //pinMode(10, OUTPUT);
+    //iniot SD card
+    if (!SD.begin(chipSelect))
+    {
+    Serial.println("Card failed, or not present");
+    return;
+    }
+    Serial.println("card initialized.");
 
   // check for the presence of the shield:
   if (WiFi.status() == WL_NO_SHIELD) {
@@ -112,11 +126,32 @@ void loop() {
         // Check to see if the client request was "GET /H" or "GET /L":
         if (currentLine.endsWith("GET /H")) {
           while (client.connected()){
+          //String dataString = "";  
+          
           sensors.requestTemperatures();       //Prepara el sensor para la lectura
- 
+
+          
           client.print(sensors.getTempCByIndex(0)); //Se lee e imprime la temperatura en grados Centigrados
           client.println(" Grados Centigrados");
- 
+
+          
+         // open the file.
+          File dataFile = SD.open("data.txt", FILE_WRITE);
+          
+          // if the file is available, write to it:
+          if (dataFile)
+          {
+            float value = sensors.getTempCByIndex(0);
+          dataFile.println(value);
+          Serial.println(value);
+          dataFile.close();
+          }
+          // if the file isn’t open
+          else
+          {
+          Serial.println("error opening data.txt");
+          }
+          
           delay(5000);
           }
           

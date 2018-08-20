@@ -1,93 +1,40 @@
-/*
-  WiFi Web Server
-
- A simple web server that shows the value of the analog input pins.
- using a WiFi shield.
-
- This example is written for a network using WPA encryption. For
- WEP or WPA, change the WiFi.begin() call accordingly.
-
- Circuit:
- * WiFi shield attached
- * Analog inputs attached to pins A0 through A5 (optional)
-
- created 13 July 2010
- by dlf (Metodo2 srl)
- modified 31 May 2012
- by Tom Igoe
-
- */
-
 #include <SPI.h>
 #include <WiFi101.h>
 
-#include <OneWire.h>                 //Se importan las librerías
-#include <DallasTemperature.h>
- 
-#define Pin 7                        //Se declara el pin donde se conectará la DATA
- 
-OneWire ourWire(Pin);                //Se establece el pin declarado como bus para la comunicación OneWire
- 
-DallasTemperature sensors(&ourWire); //Se llama a la librería DallasTemperature
-
-
-#include "arduino_secrets.h" 
-///////please enter your sensitive data in the Secret tab/arduino_secrets.h
-char ssid[] = SECRET_SSID;        // your network SSID (name)
-//char pass[] = SECRET_PASS;    // your network password (use for WPA, or use as key for WEP)
+char ssid[] = "FPEmpren";      //  your network SSID (name)
+//char pass[] = "your-network-password";   // your network password
 int keyIndex = 0;                 // your network key Index number (needed only for WEP)
 
 int status = WL_IDLE_STATUS;
-
 WiFiServer server(80);
 
-#include <SD.h>
-#include <SPI.h>
-
-const int chipSelect = 4;
-
 void setup() {
-  //Initialize serial and wait for port to open:
-  Serial.begin(9600);
-  //while (!Serial) {
-   // ; // wait for serial port to connect. Needed for native USB port only
-  //}
-    Serial.print("Initializing SD card…");
-    //pinMode(10, OUTPUT);
-    //iniot SD card
-    if (!SD.begin(chipSelect))
-    {
-    Serial.println("Card failed, or not present");
-    return;
-    }
-    Serial.println("card initialized.");
+  Serial.begin(9600);      // initialize serial communication
+  pinMode(9, OUTPUT);      // set the LED pin mode
 
   // check for the presence of the shield:
   if (WiFi.status() == WL_NO_SHIELD) {
     Serial.println("WiFi shield not present");
-    // don't continue:
-    while (true);
+    while (true);       // don't continue
   }
 
-  // attempt to connect to WiFi network:
-  while (status != WL_CONNECTED) {
-    Serial.print("Attempting to connect to SSID: ");
-    Serial.println(ssid);
+  // attempt to connect to Wifi network:
+  while ( status != WL_CONNECTED) {
+    Serial.print("Attempting to connect to Network named: ");
+    Serial.println(ssid);                   // print the network name (SSID);
+
     // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
     status = WiFi.begin(ssid);
-
     // wait 10 seconds for connection:
     delay(10000);
   }
-  server.begin();
-  // you're connected now, so print out the status:
-  printWiFiStatus();
+  server.begin();                           // start the web server on port 80
+  printWifiStatus();                        // you're connected now, so print out the status
 }
 
-
 void loop() {
-  // listen for incoming clients
-  WiFiClient client = server.available();
+  WiFiClient client = server.available();   // listen for incoming clients
+
   if (client) {                             // if you get a client,
     Serial.println("new client");           // print a message out the serial port
     String currentLine = "";                // make a String to hold incoming data from the client
@@ -107,8 +54,8 @@ void loop() {
             client.println();
 
             // the content of the HTTP response follows the header:
-            client.print("Click <a href=\"/H\">here</a> to start<br>");
-            
+            client.print("Click <a href=\"/H\">here</a> turn the LED on pin 9 on");
+            client.print("Click <a href=\"/L\">here</a> turn the LED on pin 9 off");
 
             // The HTTP response ends with another blank line:
             client.println();
@@ -125,36 +72,11 @@ void loop() {
 
         // Check to see if the client request was "GET /H" or "GET /L":
         if (currentLine.endsWith("GET /H")) {
-          while (client.connected()){
-          //String dataString = "";  
-          
-          sensors.requestTemperatures();       //Prepara el sensor para la lectura
-
-          
-          client.print(sensors.getTempCByIndex(0)); //Se lee e imprime la temperatura en grados Centigrados
-          client.println(" Grados Centigrados");
-
-          
-         // open the file.
-          File dataFile = SD.open("data.txt", FILE_WRITE);
-          
-          // if the file is available, write to it:
-          if (dataFile)
-          {
-          dataFile.println(sensors.getTempCByIndex(0));
-          dataFile.close();
-          }
-          // if the file isn’t open
-          else
-          {
-          Serial.println("error opening data.txt");
-          }
-          
-          delay(5000);
-          }
-          
+          digitalWrite(9, HIGH);               // GET /H turns the LED on
         }
-        
+        if (currentLine.endsWith("GET /L")) {
+          digitalWrite(9, LOW);                // GET /L turns the LED off
+        }
       }
     }
     // close the connection:
@@ -163,7 +85,7 @@ void loop() {
   }
 }
 
-void printWiFiStatus() {
+void printWifiStatus() {
   // print the SSID of the network you're attached to:
   Serial.print("SSID: ");
   Serial.println(WiFi.SSID());
@@ -178,4 +100,7 @@ void printWiFiStatus() {
   Serial.print("signal strength (RSSI):");
   Serial.print(rssi);
   Serial.println(" dBm");
+  // print where to go in a browser:
+  Serial.print("To see this page in action, open a browser to http://");
+  Serial.println(ip);
 }

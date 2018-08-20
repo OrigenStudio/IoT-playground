@@ -1,7 +1,10 @@
 #include <SD.h>
 #include <SPI.h>
+#define Pin 5
 
 const int chipSelect = 4;
+char cadena[555];
+int i=0;
 
 File myFile;
 
@@ -34,13 +37,29 @@ myFile = SD.open("test.txt", FILE_WRITE);
     myFile.close();
   } else {
     // if the file didn't open, print an error:
-    Serial.println("error opening test.txt");
+    Serial.println("error opening test2.txt");
   }
-   
-
 }
 
-void loop() {
-  
 
+
+void loop() {
+ 
+  File myFile = SD.open("test.txt", FILE_WRITE);
+
+  //Serial.print("Writing to test.txt...");
+  
+  // if the file opened okay, write to it:
+  if (myFile) {
+    int value = analogRead(Pin);
+    myFile.println(value);
+    Serial.println(value);
+    myFile.close();
+    delay(3000);
+  } 
+  
+  else {
+    // if the file didn't open, print an error:
+    Serial.println("error opening test.txt");
+  }
 }

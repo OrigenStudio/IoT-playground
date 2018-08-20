@@ -6,6 +6,7 @@ void setup() {
 
 void loop() {
 
+  //thing.handle();
   int value = analogRead(Pin);
   Serial.println(value);
 
